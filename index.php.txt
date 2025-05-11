@@ -1,0 +1,377 @@
+php
+session_start();
+$theme = isset($_SESSION['theme'])  $_SESSION['theme']  'light';
+$page = isset($_GET['page'])  $_GET['page']  'home';
+
+if (isset($_POST['toggle_theme'])) {
+    $theme = ($theme === 'light')  'dark'  'light';
+    $_SESSION['theme'] = $theme;
+}
+
+try {
+    $db = new PDO('mysqlhost=localhost;dbname=portfolio', 'andrew', 'Luckyandrew@123');
+    $stmt = $db-query('SELECT  FROM user_info LIMIT 1');
+    $user = $stmt-fetch(PDOFETCH_ASSOC);
+} catch(PDOException $e) {
+    echo Connection failed  . $e-getMessage();
+}
+
+ Handle contact form submission
+if (isset($_POST['submit_contact'])) {
+    $name = filter_var($_POST['name'], FILTER_SANITIZE_STRING);
+    $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
+    $message = filter_var($_POST['message'], FILTER_SANITIZE_STRING);
+     Here you would typically process the form data (e.g., send email or save to database)
+    $success_message = Thank you for your message! I'll get back to you soon.;
+}
+
+!DOCTYPE html
+html lang=en
+head
+    meta charset=UTF-8
+    meta name=viewport content=width=device-width, initial-scale=1.0
+    titleInteractive Developer Portfoliotitle
+    link href=httpscdnjs.cloudflare.comajaxlibsfont-awesome6.0.0cssall.min.css rel=stylesheet
+    style
+        root {
+            --light-bg #f8fafc;
+            --light-text #1e293b;
+            --light-accent #3b82f6;
+            --light-secondary #6366f1;
+            --light-nav rgba(255, 255, 255, 0.8);
+            --light-card #ffffff;
+            --light-border rgba(0, 0, 0, 0.1);
+            
+            --dark-bg #0f172a;
+            --dark-text #e2e8f0;
+            --dark-accent #60a5fa;
+            --dark-secondary #818cf8;
+            --dark-nav rgba(15, 23, 42, 0.8);
+            --dark-card #1e293b;
+            --dark-border rgba(255, 255, 255, 0.1);
+        }
+
+         {
+            margin 0;
+            padding 0;
+            box-sizing border-box;
+            transition all 0.3s ease;
+        }
+
+        body {
+            font-family 'Inter', system-ui, -apple-system, sans-serif;
+            line-height 1.6;
+            min-height 100vh;
+        }
+
+        .light-theme {
+            background var(--light-bg);
+            color var(--light-text);
+        }
+
+        .dark-theme {
+            background var(--dark-bg);
+            color var(--dark-text);
+        }
+
+         Navigation Styles 
+        .nav {
+            position fixed;
+            top 0;
+            left 0;
+            right 0;
+            padding 1rem;
+            backdrop-filter blur(10px);
+            -webkit-backdrop-filter blur(10px);
+            z-index 1000;
+            display flex;
+            justify-content space-between;
+            align-items center;
+        }
+
+        .light-theme .nav {
+            background var(--light-nav);
+            border-bottom 1px solid var(--light-border);
+        }
+
+        .dark-theme .nav {
+            background var(--dark-nav);
+            border-bottom 1px solid var(--dark-border);
+        }
+
+        .nav-links {
+            display flex;
+            gap 2rem;
+        }
+
+        .nav-link {
+            text-decoration none;
+            color inherit;
+            font-weight 500;
+            position relative;
+            padding 0.5rem 1rem;
+            border-radius 0.5rem;
+        }
+
+        .nav-linkhover {
+            background rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-link.active {
+            background var(--light-accent);
+            color white;
+        }
+
+        .dark-theme .nav-link.active {
+            background var(--dark-accent);
+        }
+
+        .container {
+            max-width 1200px;
+            margin 0 auto;
+            padding 6rem 2rem 2rem;
+        }
+
+         Common Section Styles 
+        .section {
+            background rgba(255, 255, 255, 0.05);
+            backdrop-filter blur(10px);
+            -webkit-backdrop-filter blur(10px);
+            border-radius 20px;
+            padding 2rem;
+            margin-bottom 2rem;
+            border 1px solid var(--light-border);
+        }
+
+        .dark-theme .section {
+            border-color var(--dark-border);
+        }
+
+         About Page Styles 
+        .about-grid {
+            display grid;
+            grid-template-columns 1fr 2fr;
+            gap 2rem;
+            align-items start;
+        }
+
+        .about-image {
+            width 100%;
+            border-radius 20px;
+            object-fit cover;
+        }
+
+        .about-content h2 {
+            font-size 2rem;
+            margin-bottom 1rem;
+            background linear-gradient(45deg, var(--light-accent), var(--light-secondary));
+            -webkit-background-clip text;
+            -webkit-text-fill-color transparent;
+        }
+
+         Contact Page Styles 
+        .contact-form {
+            max-width 600px;
+            margin 0 auto;
+        }
+
+        .form-group {
+            margin-bottom 1.5rem;
+        }
+
+        .form-label {
+            display block;
+            margin-bottom 0.5rem;
+            font-weight 500;
+        }
+
+        .form-input,
+        .form-textarea {
+            width 100%;
+            padding 0.75rem;
+            border 1px solid var(--light-border);
+            border-radius 0.5rem;
+            background rgba(255, 255, 255, 0.05);
+            color inherit;
+            font-family inherit;
+        }
+
+        .dark-theme .form-input,
+        .dark-theme .form-textarea {
+            border-color var(--dark-border);
+        }
+
+        .form-textarea {
+            min-height 150px;
+            resize vertical;
+        }
+
+        .submit-btn {
+            background var(--light-accent);
+            color white;
+            padding 0.75rem 1.5rem;
+            border none;
+            border-radius 0.5rem;
+            cursor pointer;
+            font-weight 500;
+            width 100%;
+        }
+
+        .dark-theme .submit-btn {
+            background var(--dark-accent);
+        }
+
+        .submit-btnhover {
+            opacity 0.9;
+            transform translateY(-2px);
+        }
+
+         Success Message 
+        .success-message {
+            background #10b981;
+            color white;
+            padding 1rem;
+            border-radius 0.5rem;
+            margin-bottom 1rem;
+            text-align center;
+        }
+
+         Responsive Design 
+        @media (max-width 768px) {
+            .about-grid {
+                grid-template-columns 1fr;
+            }
+
+            .nav-links {
+                gap 1rem;
+            }
+
+            .nav-link {
+                padding 0.5rem;
+                font-size 0.9rem;
+            }
+        }
+    style
+head
+body class=php echo $theme -theme
+    nav class=nav
+        div class=nav-links
+            a href=page=home class=nav-link php echo $page === 'home'  'active'  ''; Homea
+            a href=page=about class=nav-link php echo $page === 'about'  'active'  ''; Abouta
+            a href=page=contact class=nav-link php echo $page === 'contact'  'active'  ''; Contacta
+        div
+        form method=POST style=margin 0;
+            button type=submit name=toggle_theme class=nav-link
+                i class=fas php echo $theme === 'light'  'fa-moon'  'fa-sun' i
+            button
+        form
+    nav
+
+    div class=container
+        php if($page === 'home') 
+            !-- Home Page Content --
+            div class=profile
+                php if(isset($user)) 
+                    div class=section
+                        img src=php echo htmlspecialchars($user['profile_picture']);  alt=Profile Picture class=profile-picture
+                        h1 class=namephp echo htmlspecialchars($user['full_name']); h1
+                        p class=professionphp echo htmlspecialchars($user['profession']); p
+                        div class=social-links
+                            a href=# class=social-linki class=fab fa-githubia
+                            a href=# class=social-linki class=fab fa-linkedinia
+                            a href=# class=social-linki class=fab fa-twitteria
+                            a href=# class=social-linki class=fab fa-behanceia
+                        div
+                    div
+
+                    div class=section
+                        h2 class=skills-titleSkills & Expertiseh2
+                        div class=skills-grid
+                            php 
+                            $skills = explode(',', $user['skills']);
+                            foreach($skills as $skill) 
+                            
+                                div class=skill-item
+                                    php echo htmlspecialchars(trim($skill)); 
+                                div
+                            php endforeach; 
+                        div
+                    div
+                php endif; 
+            div
+
+        php elseif($page === 'about') 
+            !-- About Page Content --
+            div class=section
+                div class=about-grid
+                    img src=apiplaceholder400500 alt=About Me class=about-image
+                    div class=about-content
+                        h2About Meh2
+                        pHello! I'm a passionate developer with over 3 years of experience in creating beautiful and functional web applications. My journey in tech began when I built my first website at the age of 19, and I've been hooked ever since.p
+                        br
+                        pI specialize inp
+                        ul style=margin-left 1.5rem;
+                            liFull-stack web developmentli
+                            liMobile application developmentli
+                            liUIUX designli
+                            liCloud architectureli
+                        ul
+                        br
+                        pWhen I'm not coding, you can find me hiking, reading tech blogs, or contributing to open-source projects. I believe in continuous learning and sharing knowledge with the developer community.p
+                    div
+                div
+            div
+
+        php elseif($page === 'contact') 
+            !-- Contact Page Content --
+            div class=section
+                h2 style=text-align center; margin-bottom 2rem;Get In Touchh2
+                php if(isset($success_message)) 
+                    div class=success-message
+                        php echo $success_message; 
+                    div
+                php endif; 
+                
+                form method=POST class=contact-form
+                    div class=form-group
+                        label for=name class=form-labelNamelabel
+                        input type=text id=name name=name class=form-input required
+                    div
+                    
+                    div class=form-group
+                        label for=email class=form-labelEmaillabel
+                        input type=email id=email name=email class=form-input required
+                    div
+                    
+                    div class=form-group
+                        label for=message class=form-labelMessagelabel
+                        textarea id=message name=message class=form-textarea requiredtextarea
+                    div
+                    
+                    button type=submit name=submit_contact class=submit-btnSend Messagebutton
+                form
+            div
+        php endif; 
+    div
+
+    script
+         Smooth reveal animation for sections
+        const observer = new IntersectionObserver((entries) = {
+            entries.forEach(entry = {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = 1;
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, {
+            threshold 0.1
+        });
+
+        document.querySelectorAll('.section').forEach(section = {
+            section.style.opacity = 0;
+            section.style.transform = 'translateY(20px)';
+            observer.observe(section);
+        });
+    script
+body
+html

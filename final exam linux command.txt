@@ -1,0 +1,196 @@
+Part 1: Network and Web Server Configuration
+You are required to set up virtual interfaces, host web services on each interface, secure the server, and configure access restrictions.
+ 
+1. Virtual Interface Configuration
+1. Create two sub-interfaces/virtual interfaces on your Linux machine.
+2. Assign static IP addresses in the same subnet as the original interface. Ensure the sub-interfaces are reachable by other VMs or host machines on the same network.
+ 
+1. Host the AUCA Education Web Page
+1. On the first virtual interface, configure an Apache2 web server to host a static web page advertising AUCA Education.
+2. The domain name for this interface should be:
+   * studentID.auca.ac.rw
+3. Configure the web server and ensure the domain name resolves correctly.
+ 
+
+please help to do this in ubuntu like step by step like guide me ti achieve this
+
+
+I'll provide a comprehensive, step-by-step guide to help you configure virtual interfaces and set up a web server on Ubuntu. I'll break this down into detailed steps:
+
+Part 1: Virtual Interface Configuration
+Step 1: Identify Current Network Interface
+First, let's check your current network interface:
+
+bash
+
+Copy
+ip addr show
+This will display your current network interfaces. Typically, the main interface is named enp0s3 or eth0.
+
+Step 2: Create Virtual Interfaces
+Let's create two virtual interfaces. We'll assume your primary interface is enp0s3:
+
+Install the necessary package:
+bash
+
+Copy
+sudo apt update
+sudo apt install vlan
+Create virtual interfaces:
+bash
+
+Copy
+# Enable 8021q kernel module
+sudo modprobe 8021q
+
+# Create virtual interfaces
+sudo ip link add link enp0s3 name enp0s3.100 type vlan id 100
+sudo ip link add link enp0s3 name enp0s3.200 type vlan id 200
+Step 3: Configure IP Addresses
+Assign static IP addresses to these interfaces:
+
+bash
+
+Copy
+# For the first virtual interface (enp0s3.100)
+sudo ip addr add 192.168.1.10/24 dev enp0s3.100
+
+# For the second virtual interface (enp0s3.200)
+sudo ip addr add 192.168.1.11/24 dev enp0s3.200
+
+# Bring up the interfaces
+sudo ip link set enp0s3.100 up
+sudo ip link set enp0s3.200 up
+Step 4: Make Interfaces Persistent
+Edit the netplan configuration:
+
+bash
+
+Copy
+sudo nano /etc/netplan/01-netcfg.yaml
+Add the following configuration (adjust IP addresses and interface names as needed):
+
+yaml
+
+Copy
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    enp0s3:
+      addresses: []
+  vlans:
+    enp0s3.100:
+      id: 100
+      link: enp0s3
+      addresses: [192.168.1.10/24]
+    enp0s3.200:
+      id: 200
+      link: enp0s3
+      addresses: [192.168.1.11/24]
+Apply the configuration:
+
+bash
+
+Copy
+sudo netplan apply
+Part 2: Apache Web Server Configuration
+Step 1: Install Apache
+bash
+
+Copy
+sudo apt update
+sudo apt install apache2
+Step 2: Create Web Page Content
+Create a directory for your website:
+
+bash
+
+Copy
+sudo mkdir -p /var/www/auca-education
+Create the HTML content:
+
+bash
+
+Copy
+sudo nano /var/www/auca-education/index.html
+Add your AUCA Education content:
+
+html
+
+Copy
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AUCA Education</title>
+</head>
+<body>
+    <h1>Welcome to AUCA Education</h1>
+    <p>Advancing knowledge and empowering futures.</p>
+</body>
+</html>
+Step 3: Configure Apache Virtual Host
+Create a new virtual host configuration:
+
+bash
+
+Copy
+sudo nano /etc/apache2/sites-available/auca-education.conf
+Add the following configuration:
+
+apache
+
+Copy
+<VirtualHost *:80>
+    ServerName studentID.auca.ac.rw
+    DocumentRoot /var/www/auca-education
+    <Directory /var/www/auca-education>
+        Options Indexes FollowSymLinks
+        AllowOverride None
+        Require all granted
+    </Directory>
+</VirtualHost>
+Step 4: Enable the Virtual Host and Restart Apache
+bash
+
+Copy
+# Enable the site
+sudo a2ensite auca-education
+
+# Disable the default site
+sudo a2dissite 000-default.conf
+
+# Restart Apache
+sudo systemctl restart apache2
+Step 5: Configure DNS (Optional)
+If you want local resolution, edit /etc/hosts:
+
+bash
+
+Copy
+sudo nano /etc/hosts
+Add this line:
+
+
+Copy
+192.168.1.10    studentID.auca.ac.rw
+Final Security Configuration
+bash
+
+Copy
+# Enable firewall
+sudo apt install ufw
+sudo ufw allow 'Apache'
+sudo ufw enable
+Verification Steps
+Verify interfaces:
+bash
+
+Copy
+ip addr show
+Test web server:
+bash
+
+Copy
+curl http://studentID.auca.ac.rw

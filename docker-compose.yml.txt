@@ -1,0 +1,44 @@
+version: '3.8'
+services:
+  app:
+    build:
+      context: .
+    image: portfolio-25497:latest
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: any
+    ports:
+      - "8081:80"
+    volumes:
+      - ./:/var/www/html
+    environment:
+      - MYSQL_HOST=db
+      - MYSQL_DATABASE=portfolio
+      - MYSQL_USER=25497
+      - MYSQL_PASSWORD=Luckyandrew123
+    depends_on:
+      - db
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.portfolio.rule=Host(portfolio.auca.ac.rw)"
+      - "traefik.http.routers.portfolio.entrypoints=websecure"
+      - "traefik.http.routers.portfolio.tls.certresolver=myresolver"
+    networks:
+      - traefik_net
+
+  db:
+    image: mysql:8.0
+    container_name: mysql_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 123
+      MYSQL_DATABASE: portfolio
+      MYSQL_USER: 25497
+      MYSQL_PASSWORD: Luckyandrew@123
+    networks:
+      - traefik_net
+
+networks:
+  traefik_net:
+    external: true

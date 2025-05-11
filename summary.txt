@@ -1,0 +1,113 @@
+Project Implementation Summary
+Network Configuration
+
+Kali Linux VM IP: 192.168.43.92
+Port Allocation:
+
+Apache: Port 80 (AUCA Education site)
+Nginx: Port 8080 (Portfolio site)
+
+
+
+AUCA Education Website (Apache)
+
+Domain: 25503.auca.ac.rw
+Virtual Host Configuration:
+
+<VirtualHost *:80>
+    ServerName 25503.auca.ac.rw
+    ServerAdmin webmaster@localhost
+    DocumentRoot /var/www/auca-education
+    ErrorLog ${APACHE_LOG_DIR}/auca-education-error.log
+    CustomLog ${APACHE_LOG_DIR}/auca-education-access.log combined
+</VirtualHost>
+
+Basic HTML/CSS content displaying AUCA education information
+
+Dynamic Portfolio Website (Nginx)
+
+Domain: portfolio.auca.ac.rw:8080
+Nginx Configuration:
+
+server {
+    listen 8080;
+    server_name portfolio.auca.ac.rw;
+
+    root /var/www/portfolio;
+    index index.php index.html;
+
+    location / {
+        try_files $uri $uri/ /index.php?$args;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php8.4-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+}
+Database Setup
+
+MariaDB configuration with three main tables:
+
+sqlCREATE TABLE user_info (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    full_name VARCHAR(100) NOT NULL,
+    profession VARCHAR(100) NOT NULL,
+    profile_picture VARCHAR(255) NOT NULL,
+    theme VARCHAR(20) DEFAULT 'light'
+);
+
+CREATE TABLE skills (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    skill_name VARCHAR(50) NOT NULL,
+    proficiency INT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES user_info(id)
+);
+
+CREATE TABLE experience (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    position VARCHAR(100) NOT NULL,
+    company VARCHAR(100) NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE,
+    description TEXT,
+    FOREIGN KEY (user_id) REFERENCES user_info(id)
+);
+Portfolio PHP Application Features
+
+Dynamic theme switching between light/dark modes
+CRUD operations for profile, skills, and experiences
+Responsive design with skill progress bars
+Database connection code:
+
+php// Database connection
+$servername = "localhost";
+$username = "portfolio_user";
+$password = "portfolio123";
+$dbname = "portfolio_db";
+
+// Create connection
+$conn = new mysqli($servername, $username, $password, $dbname);
+DNS Configuration
+
+Host file entries:
+
+192.168.43.92 25503.auca.ac.rw
+192.168.43.92 portfolio.auca.ac.rw
+Directory Structure
+
+Apache site: /var/www/auca-education/
+Nginx site: /var/www/portfolio/
+Main files:
+
+/var/www/auca-education/index.html
+/var/www/portfolio/index.php
+/var/www/portfolio/profile.jpg
+
+
+
+The implementation successfully delivers both a static educational website and a dynamic portfolio system with database integration and theme switching functionality, as required by the project specifications.
