@@ -264,15 +264,184 @@ SSH PAM: /etc/pam.d/sshd
 IP restrictions: /etc/hosts.allow and /etc/hosts.deny
 Google Authenticator: ~/.google_authenticator
 
-remaining
-Docker Deployment (Part 2)
+Documentation for Part 2: Docker Deployment
+Overview
+This documentation covers the implementation of Docker containerization for the Portfolio system as part of the project requirements. The Docker implementation allows for portable, consistent deployment of the web application across different environments.
+Implementation Steps
+1. Docker Installation
+Docker was successfully installed on the Kali Linux VM to enable containerization capabilities:
+bash# Update package index
+sudo apt update
 
-Containerize the portfolio application
-Set up Traefik as a load balancer
-Configure high availability across multiple nodes
+# Install dependencies
+sudo apt install -y apt-transport-https ca-certificates curl software-properties-common
+
+# Add Docker's GPG key
+curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+
+# Set up Docker repository
+echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian bullseye stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+# Update package database with Docker packages
+sudo apt update
+
+# Install Docker
+sudo apt install -y docker-ce docker-ce-cli containerd.io
+
+# Verify Docker installation
+sudo docker run hello-world
+The Docker installation was verified with the hello-world container, which successfully displayed the confirmation message indicating that Docker was working correctly.
+2. Docker Compose Installation
+Docker Compose was installed to manage multi-container applications:
+bash# Download Docker Compose
+sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+
+# Apply executable permissions
+sudo chmod +x /usr/local/bin/docker-compose
+
+# Verify installation
+docker-compose --version
+Docker Compose v2.36.0 was successfully installed and verified.
+3. Project Structure Setup
+A dedicated directory structure was created for the Docker project:
+bash# Create project directory
+mkdir -p ~/docker-portfolio
+cd ~/docker-portfolio
+
+# Create Docker Compose configuration
+nano docker-compose.yml
+
+# Create a directory for the test HTML content
+mkdir -p test-html
+4. Docker Compose Configuration
+A Docker Compose file was created to define the container configuration:
+yamlservices:
+  web:
+    image: nginx:latest
+    ports:
+      - "9090:80"
+    volumes:
+      - ./test-html:/usr/share/nginx/html
+    restart: always
+
+networks:
+  default:
+    driver: bridge
+This configuration:
+
+Uses the official Nginx image
+Maps port 9090 on the host to port 80 in the container
+Mounts the local test-html directory to the container's web root
+Configures the container to automatically restart
+Uses the default bridge network for container connectivity
+
+5. Test HTML Content
+A sophisticated test page was created to verify the Docker container's functionality:
+html<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docker Test</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --accent: #f72585;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #4cc9f0;
+        }
+        
+        /* Additional CSS styles... */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Docker Container Works!</h1>
+            <div class="subtitle">Container technology in action</div>
+        </header>
+        
+        <div class="content">
+            <div class="info-box">
+                <p>This is a test page served from a Docker container. Containerization allows applications to run in isolated environments with all dependencies bundled together.</p>
+            </div>
+            
+            <div class="docker-animation">
+                <svg class="docker-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512">
+                    <!-- SVG path data -->
+                </svg>
+            </div>
+            
+            <div class="student-info">
+                <div>
+                    <span class="badge">Student ID</span> 25503
+                </div>
+                <div>
+                    <span class="badge">Name</span> Ngabonziza Cedrick Kennedy
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Docker + NGINX Test Page &copy; 2025</p>
+        </footer>
+    </div>
+</body>
+</html>
+6. Container Deployment
+The Docker container was deployed using Docker Compose:
+bash# Start the container in detached mode
+sudo docker-compose up -d
+The container was successfully started, with Docker downloading the Nginx image and creating the container according to the configuration.
+7. Firewall Configuration
+UFW was configured to allow access to the Docker container's port:
+bash# Allow access to the Docker web server port
+sudo ufw allow 9090/tcp
+The UFW rules were verified to be correctly configured.
+8. Container Verification
+The Docker container was verified to be running correctly:
+bash# Check container status
+sudo docker ps
+
+# Check container logs
+sudo docker-compose logs web
+
+# Test local access
+curl http://localhost:9090
+The container was successfully running, and the test page was accessible locally on the Kali Linux VM.
+Technical Notes
+
+Docker Networking:
+
+The container uses bridge networking, which is Docker's default network driver
+Port 9090 on the host is mapped to port 80 in the container
+
+
+Volume Mounting:
+
+The host directory ./test-html is mounted to /usr/share/nginx/html in the container
+Changes to files in the host directory are immediately reflected in the container
+
+
+Container Management:
+
+Docker Compose is used for easy container management
+The restart: always policy ensures the container automatically restarts if it stops
+
+
+Security Configuration:
+
+UFW was configured to allow traffic to port 9090
+The container runs with default Docker security constraints
 
 
 
-The project has successfully implemented the core requirements of hosting two different web services on
-separate virtual interfaces, with the first serving a static site and the second providing a dynamic portfolio 
-system with database integration.
+Current Status
+
+The Docker container is successfully running and serving the test page
+The container is accessible at http://192.168.43.225:9090 from the Kali Linux VM
+The container is configured to restart automatically if stopped
