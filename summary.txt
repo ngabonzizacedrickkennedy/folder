@@ -1,113 +1,121 @@
-Project Implementation Summary
-Network Configuration
+Summary of Complete Project Setup
+Here's a comprehensive summary of what we've accomplished for both parts of your project:
+Apache Setup (First Virtual Interface)
 
-Kali Linux VM IP: 192.168.43.92
-Port Allocation:
+Virtual Interface Configuration
 
-Apache: Port 80 (AUCA Education site)
-Nginx: Port 8080 (Portfolio site)
-
+Set up the first virtual interface (eth0.100) with IP 192.168.43.224
+Verified the interface was properly configured and active
 
 
-AUCA Education Website (Apache)
+Apache2 Installation and Configuration
 
-Domain: 25503.auca.ac.rw
-Virtual Host Configuration:
+Installed and configured Apache2 web server
+Created a virtual host configuration for the domain 25503.auca.ac.rw
+Configured Apache to listen on the virtual interface IP
+Set up the document root at /var/www/auca-education
 
-<VirtualHost *:80>
-    ServerName 25503.auca.ac.rw
-    ServerAdmin webmaster@localhost
-    DocumentRoot /var/www/auca-education
-    ErrorLog ${APACHE_LOG_DIR}/auca-education-error.log
-    CustomLog ${APACHE_LOG_DIR}/auca-education-access.log combined
-</VirtualHost>
 
-Basic HTML/CSS content displaying AUCA education information
+Web Content Creation
 
-Dynamic Portfolio Website (Nginx)
+Created a static HTML page for AUCA Education
+Added your student information (ID: 25503, Name: Ngabonziza Cedrick Kennedy)
+Set proper permissions for the web files
 
-Domain: portfolio.auca.ac.rw:8080
-Nginx Configuration:
 
-server {
-    listen 8080;
-    server_name portfolio.auca.ac.rw;
+Domain Configuration
 
-    root /var/www/portfolio;
-    index index.php index.html;
+Added entry in the hosts file for 25503.auca.ac.rw
+Verified the domain resolution was working correctly
 
-    location / {
-        try_files $uri $uri/ /index.php?$args;
-    }
 
-    location ~ \.php$ {
-        include snippets/fastcgi-php.conf;
-        fastcgi_pass unix:/var/run/php/php8.4-fpm.sock;
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-        include fastcgi_params;
-    }
-}
-Database Setup
+Testing
 
-MariaDB configuration with three main tables:
-
-sqlCREATE TABLE user_info (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    full_name VARCHAR(100) NOT NULL,
-    profession VARCHAR(100) NOT NULL,
-    profile_picture VARCHAR(255) NOT NULL,
-    theme VARCHAR(20) DEFAULT 'light'
-);
-
-CREATE TABLE skills (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
-    skill_name VARCHAR(50) NOT NULL,
-    proficiency INT NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES user_info(id)
-);
-
-CREATE TABLE experience (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
-    position VARCHAR(100) NOT NULL,
-    company VARCHAR(100) NOT NULL,
-    start_date DATE NOT NULL,
-    end_date DATE,
-    description TEXT,
-    FOREIGN KEY (user_id) REFERENCES user_info(id)
-);
-Portfolio PHP Application Features
-
-Dynamic theme switching between light/dark modes
-CRUD operations for profile, skills, and experiences
-Responsive design with skill progress bars
-Database connection code:
-
-php// Database connection
-$servername = "localhost";
-$username = "portfolio_user";
-$password = "portfolio123";
-$dbname = "portfolio_db";
-
-// Create connection
-$conn = new mysqli($servername, $username, $password, $dbname);
-DNS Configuration
-
-Host file entries:
-
-192.168.43.92 25503.auca.ac.rw
-192.168.43.92 portfolio.auca.ac.rw
-Directory Structure
-
-Apache site: /var/www/auca-education/
-Nginx site: /var/www/portfolio/
-Main files:
-
-/var/www/auca-education/index.html
-/var/www/portfolio/index.php
-/var/www/portfolio/profile.jpg
+Confirmed that Apache was serving the static AUCA Education page
+Accessed the site successfully via the configured domain name
 
 
 
-The implementation successfully delivers both a static educational website and a dynamic portfolio system with database integration and theme switching functionality, as required by the project specifications.
+Nginx Portfolio Setup (Second Virtual Interface)
+
+Virtual Interface Configuration
+
+Set up the second virtual interface (eth0.200) with IP 192.168.43.225
+Verified the interface was properly configured and active
+
+
+Database Installation and Configuration
+
+Installed and configured MariaDB for the portfolio database
+Created a database called portfolio_db
+Set up a database user with appropriate permissions
+Created necessary tables: user_info, skills, and experience
+Populated the tables with initial data
+
+
+Web Server Installation and Configuration
+
+Installed Nginx and PHP-FPM (php8.4-fpm)
+Configured Nginx to listen on port 8080 on the second virtual interface
+Set up PHP-FPM to process PHP files
+Created a server configuration for portfolio.auca.ac.rw
+
+
+Dynamic Portfolio Website
+
+Created the directory structure at /var/www/portfolio
+Implemented the PHP files (index.php and process.php)
+Set up the file upload functionality for profile pictures
+Configured proper file permissions
+
+
+Portfolio Features
+
+Implemented light/dark theme switching functionality
+Created CRUD operations for profile, skills, and experience
+Set up dynamic data retrieval from the database
+Configured the user interface with interactive elements
+
+
+Performance Optimization
+
+Configured PHP-FPM with optimized settings
+Fine-tuned Nginx for better performance
+Adjusted MariaDB for improved database operations
+
+
+Testing
+
+Verified Nginx was listening on the correct port and IP
+Successfully accessed the portfolio through a web browser
+Confirmed all dynamic functionality was working
+
+
+
+Current Status
+
+AUCA Education Site: Accessible via HTTP at http://25503.auca.ac.rw
+Portfolio Site: Accessible via HTTP at http://portfolio.auca.ac.rw:8080
+Both sites are operational and meet the basic requirements of the project
+
+Remaining Tasks
+
+Security Implementation
+
+Set up HTTPS with self-signed certificates for both sites
+Install and configure ModSecurity for Apache and Nginx
+Implement firewall rules with UFW
+Configure two-factor authentication for SSH
+
+
+Docker Deployment (Part 2)
+
+Containerize the portfolio application
+Set up Traefik as a load balancer
+Configure high availability across multiple nodes
+
+
+
+The project has successfully implemented the core requirements of hosting two different web services on
+separate virtual interfaces, with the first serving a static site and the second providing a dynamic portfolio 
+system with database integration.
