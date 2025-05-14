@@ -98,16 +98,173 @@ AUCA Education Site: Accessible via HTTP at http://25503.auca.ac.rw
 Portfolio Site: Accessible via HTTP at http://portfolio.auca.ac.rw:8080
 Both sites are operational and meet the basic requirements of the project
 
-Remaining Tasks
+Comprehensive Project Implementation Notes - Part 1
+Network and Web Server Configuration
+Virtual Interface Setup
+
+First Virtual Interface (Apache)
+
+Interface: eth0.100
+IP Address: 192.168.43.224
+Configuration verified with ip addr show
+
+
+Second Virtual Interface (Nginx)
+
+Interface: eth0.200
+IP Address: 192.168.43.225
+Configuration verified with ip addr show
+
+
+
+Web Services Configuration
+
+Apache Setup (AUCA Education Site)
+
+Domain: 25503.auca.ac.rw
+Document Root: /var/www/auca-education
+Static content displaying AUCA education information
+Student information included (ID: 25503, Name: Ngabonziza Cedrick Kennedy)
+
+
+Nginx Setup (Portfolio Site)
+
+Domain: portfolio.auca.ac.rw
+Port: 8443 (for HTTPS)
+Document Root: /var/www/portfolio
+Dynamic content with light/dark theme switching
+Database integration (MariaDB)
+PHP processing configured
+
+
 
 Security Implementation
+HTTPS Configuration
 
-Set up HTTPS with self-signed certificates for both sites
-Install and configure ModSecurity for Apache and Nginx
-Implement firewall rules with UFW
-Configure two-factor authentication for SSH
+Apache SSL Setup
+
+Generated self-signed certificate and key:
+/etc/ssl/certs/apache-selfsigned.crt
+/etc/ssl/private/apache-selfsigned.key
+
+SSL configuration in /etc/apache2/sites-available/25503.auca.ac.rw-ssl.conf
+HTTPS accessible at https://25503.auca.ac.rw
 
 
+Nginx SSL Setup
+
+Generated self-signed certificate and key:
+/etc/nginx/ssl/portfolio-selfsigned.crt
+/etc/nginx/ssl/portfolio-selfsigned.key
+
+SSL configuration in /etc/nginx/sites-available/portfolio
+HTTPS accessible at https://portfolio.auca.ac.rw:8443
+
+
+
+Web Application Firewall (ModSecurity)
+
+ModSecurity for Apache
+
+Installed with libapache2-mod-security2
+Configuration path: /etc/modsecurity/modsecurity.conf
+OWASP Core Rule Set implemented
+Active protection mode (SecRuleEngine On)
+Successfully blocking XSS attacks (verified with testing)
+
+
+
+Firewall Configuration (UFW)
+
+UFW Setup
+
+Default policy: deny incoming, allow outgoing
+Allowed services:
+
+SSH (port 22)
+HTTPS for Apache (port 443)
+HTTPS for Nginx (port 8443)
+
+
+Verified active with sudo ufw status verbose
+
+
+
+SSH Security
+
+IP-based Access Restrictions
+
+Configuration in /etc/hosts.allow and /etc/hosts.deny
+Only allows SSH connections from 192.168.43.0/24 network
+Blocks all other SSH connection attempts
+
+
+Two-Factor Authentication
+
+Implemented using Google Authenticator
+PAM configuration in /etc/pam.d/sshd
+SSH configuration in /etc/ssh/sshd_config
+Verification code required for login
+Successfully tested from host machine (192.168.43.164)
+
+
+
+Performance Optimization
+
+Nginx Performance Tuning
+
+FastCGI caching implemented
+Browser caching for static assets
+Gzip compression enabled
+Optimized buffer settings
+Response time: 57ms (tested with curl)
+Handles 250+ requests per second under load
+
+
+
+Testing and Validation
+
+Web Services
+
+Both sites accessible via HTTPS with their domain names
+Successfully accessible from host machine
+Verified through browser access
+
+
+Security Features
+
+ModSecurity protection verified (returns 403 Forbidden for XSS attempts)
+UFW rules confirmed active
+SSH 2FA login successfully tested from Windows host
+
+
+
+Configuration Files
+
+Apache Configuration
+
+Main config: /etc/apache2/apache2.conf
+Virtual host: /etc/apache2/sites-available/auca-education.conf
+SSL config: /etc/apache2/sites-available/25503.auca.ac.rw-ssl.conf
+ModSecurity: /etc/modsecurity/modsecurity.conf
+
+
+Nginx Configuration
+
+Main config: /etc/nginx/nginx.conf
+Virtual host: /etc/nginx/sites-available/portfolio
+SSL certificates: /etc/nginx/ssl/
+
+
+Security Configuration
+
+UFW: Managed via ufw command
+SSH: /etc/ssh/sshd_config
+SSH PAM: /etc/pam.d/sshd
+IP restrictions: /etc/hosts.allow and /etc/hosts.deny
+Google Authenticator: ~/.google_authenticator
+
+remaining
 Docker Deployment (Part 2)
 
 Containerize the portfolio application
