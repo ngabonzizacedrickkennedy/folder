@@ -549,36 +549,209 @@ Firewall rule verification
 
 
 
-Current Status
+Tasks Completed
+Task 1.1: Prepare the Portfolio Application Files ✅
+We organized the portfolio application files into a proper structure for containerization:
+bash~/portfolio-docker/
+├── database/
+│   ├── data.sql
+│   ├── init.sql
+│   └── schema.sql
+└── web/
+    └── src/
+        ├── index.php
+        ├── process.php
+        └── uploads/
+Verification:
+bashls -la ~/portfolio-docker/web/src/
+ls -la ~/portfolio-docker/database/
+[PLACE FOR SCREENSHOT: Directory structure showing the organized files]
+Task 1.2: Create Database Docker Configuration ✅
+We configured the MariaDB database container with proper environment variables and volume mounts:
+yamldb:
+  image: mariadb:latest
+  container_name: portfolio-db-25503
+  restart: always
+  environment:
+    MYSQL_ROOT_PASSWORD: rootsecurepassword
+    MYSQL_DATABASE: portfolio_db
+    MYSQL_USER: portfolio_user
+    MYSQL_PASSWORD: portfolio_password
+  volumes:
+    - db_data:/var/lib/mysql
+    - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+  networks:
+    - portfolio-network
+We also updated the database connection settings in the PHP files:
+php$servername = "db";
+$username = "portfolio_user";
+$password = "portfolio_password";
+$dbname = "portfolio_db";
+Verification:
+bashgrep 'servername\|username\|password' ~/portfolio-docker/web/src/index.php
+[PLACE FOR SCREENSHOT: PHP file showing database connection settings]
+Task 1.3: Create Web Server Dockerfile ✅
+We created a Dockerfile for the web server using Apache with PHP:
+dockerfileFROM php:8.2-apache
 
-Docker container is running and accessible at http://192.168.43.225:9090/
-Container automatically restarts if it stops
-Test page is properly served from the container
-The container is accessible from both the Kali VM and the host machine
+# Install dependencies and PHP extensions
+RUN apt-get update && apt-get install -y \
+    libfreetype6-dev \
+    libjpeg62-turbo-dev \
+    libpng-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) gd mysqli pdo pdo_mysql
 
-Next Steps for Project Completion
+# Enable Apache modules
+RUN a2enmod rewrite
 
-Containerize the Portfolio Application:
+# Configure PHP
+RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
-Create Dockerfiles for the web application and database
-Configure Docker Compose for multi-container setup
+# Copy application files
+COPY src/ /var/www/html/
+
+# Set permissions
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html \
+    && chmod -R 777 /var/www/html/uploads
+
+# Expose port 80
+EXPOSE 80
+
+CMD ["apache2-foreground"]
+Verification:
+bashcat ~/portfolio-docker/web/Dockerfile
+[PLACE FOR SCREENSHOT: Dockerfile content showing the web server configuration]
+Task 1.4: Create Docker Compose Configuration ✅
+We created a Docker Compose file to orchestrate both containers:
+yamlservices:
+  # Database service
+  db:
+    image: mariadb:latest
+    container_name: portfolio-db-25503
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootsecurepassword
+      MYSQL_DATABASE: portfolio_db
+      MYSQL_USER: portfolio_user
+      MYSQL_PASSWORD: portfolio_password
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - portfolio-network
+
+  # Web service
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: portfolio-web-25503
+    depends_on:
+      - db
+    ports:
+      - "8089:80"
+    restart: always
+    volumes:
+      - ./web/src/uploads:/var/www/html/uploads
+    networks:
+      - portfolio-network
+    labels:
+      - "student.id=25503"
+      - "student.name=Ngabonziza Cedrick Kennedy"
+      - "app.description=Portfolio CRUD System"
+
+# Networks
+networks:
+  portfolio-network:
+    driver: bridge
+    name: portfolio-docker_portfolio-network
+
+# Volumes
+volumes:
+  db_data:
+    name: portfolio-25503-db-data
+Verification:
+bashcat ~/portfolio-docker/docker-compose.yml
+[PLACE FOR SCREENSHOT: Docker Compose configuration file]
+Task 1.5: Test Portfolio Application Container ✅
+We verified that the portfolio application works correctly in Docker:
+bashdocker-compose ps
+The application was accessible at: http://localhost:8089
+Browser Access Verification:
+[PLACE FOR SCREENSHOT: Browser showing the portfolio application running at http://localhost:8089]
+Task 2.1: Install Traefik ✅
+We installed and configured Traefik as a load balancer:
+yamlservices:
+  traefik:
+    image: traefik:v2.10
+    container_name: traefik-integrated
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "9197:80"    # HTTP port
+      - "9198:8080"  # Dashboard port
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+Verification:
+bashdocker ps | grep traefik
+The Traefik dashboard was accessible at: http://localhost:9198
+[PLACE FOR SCREENSHOT: Traefik dashboard showing the running instance]
+Task 2.2: Configure Traefik Load Balancer ✅
+We configured Traefik to route traffic to our portfolio application:
+yamlweb:
+  # ... existing configuration ...
+  labels:
+    - "traefik.enable=true"
+    - "traefik.http.routers.portfolio.rule=Host(`portfolio.auca.ac.rw`)"
+    - "traefik.http.routers.portfolio.entrypoints=web"
+    - "traefik.http.services.portfolio.loadbalancer.server.port=80"
+We added the domain to the hosts file:
+127.0.0.1 portfolio.auca.ac.rw
+The application was accessible via Traefik at: http://portfolio.auca.ac.rw:9197
+Verification:
+[PLACE FOR SCREENSHOT: Browser showing the portfolio application accessed through Traefik]
+Network Configuration Summary
+
+IP Address: 192.168.43.223 (Kali Linux VM)
+Ports:
+
+8089: Direct access to portfolio container
+9197: Traefik HTTP port
+9198: Traefik dashboard
 
 
-Implement Traefik Load Balancer:
 
-Install and configure Traefik
-Set up load balancing across containers
-Configure TLS encryption with Let's Encrypt
+Remaining Tasks
+Task 2.3: Set Up High Availability
 
+Deploy multiple instances of the portfolio application
+Configure load balancing across multiple Docker nodes
+Set up nodes on both Ubuntu and RedHat/CentOS servers
+Ensure system remains functional when one node fails
 
-High Availability Configuration:
+Task 2.4: Implement Security Mechanisms
 
-Set up multiple container nodes
-Configure Traefik for failover
-
-
-Security Implementation:
-
-Add user authentication
+Set up TLS encryption with Let's Encrypt
+Implement user authentication
 Configure API key-based access
-Implement additional security mechanisms
+Add additional security mechanisms
+
+Future Work & Implementation
+For Task 2.3, the implementation would involve:
+
+Setting up Docker on both your Kali Linux (192.168.43.223) and RedHat (192.168.43.33) VMs
+Creating a Docker Swarm or similar orchestration
+Deploying the application across both nodes
+Configuring Traefik to distribute traffic between them
+
+For Task 2.4, the implementation would involve:
+
+Configuring Let's Encrypt for TLS encryption
+Setting up basic authentication for the portfolio application
+Implementing API key validation for admin functions
+Adding additional security measures like IP filtering and rate limiting
